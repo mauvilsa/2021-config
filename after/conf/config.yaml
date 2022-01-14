@@ -1,9 +1,7 @@
-defaults:
-  - files: mnist
-  - _self_
+files: files/mnist.yaml
 paths:
   log: ./runs
-  data: ${hydra:runtime.cwd}/../data/raw
+  data: ../data/raw
 params:
   epoch_count: 20
   lr: 5e-5

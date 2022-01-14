@@ -1,39 +1,36 @@
-import hydra
 import torch
-from hydra.core.config_store import ConfigStore
-from omegaconf import OmegaConf
+from jsonargparse import CLI
 
-from config import MNISTConfig
+import config
 from ds.dataset import create_dataloader
 from ds.models import LinearNet
 from ds.runner import Runner, run_epoch
 from ds.tracking import TensorboardExperiment
 
-cs = ConfigStore.instance()
-cs.store(name="mnist_config", node=MNISTConfig)
 
-
-@hydra.main(config_path="conf", config_name="config")
-def main(cfg: MNISTConfig) -> None:
-    print(OmegaConf.to_yaml(cfg))
+def main(
+    paths: config.Paths,
+    files: config.Files,
+    params: config.Params,
+) -> None:
 
     # Model and Optimizer
     model = LinearNet()
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.params.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=params.lr)
 
     # Create the data loaders
 
     test_loader = create_dataloader(
-        batch_size=cfg.params.batch_size,
-        root_path=cfg.paths.data,
-        data_file=cfg.files.test_data,
-        label_file=cfg.files.test_labels,
+        batch_size=params.batch_size,
+        root_path=paths.data,
+        data_file=files.test_data,
+        label_file=files.test_labels,
     )
     train_loader = create_dataloader(
-        batch_size=cfg.params.batch_size,
-        root_path=cfg.paths.data,
-        data_file=cfg.files.train_data,
-        label_file=cfg.files.train_labels,
+        batch_size=params.batch_size,
+        root_path=paths.data,
+        data_file=files.train_data,
+        label_file=files.train_labels,
     )
 
     # Create the runners
@@ -41,16 +38,16 @@ def main(cfg: MNISTConfig) -> None:
     train_runner = Runner(train_loader, model, optimizer)
 
     # Setup the experiment tracker
-    tracker = TensorboardExperiment(log_path=cfg.paths.log)
+    tracker = TensorboardExperiment(log_path=paths.log)
 
     # Run the epochs
-    for epoch_id in range(cfg.params.epoch_count):
+    for epoch_id in range(params.epoch_count):
         run_epoch(test_runner, train_runner, tracker, epoch_id)
 
         # Compute Average Epoch Metrics
         summary = ", ".join(
             [
-                f"[Epoch: {epoch_id + 1}/{cfg.params.epoch_count}]",
+                f"[Epoch: {epoch_id + 1}/{params.epoch_count}]",
                 f"Test Accuracy: {test_runner.avg_accuracy: 0.4f}",
                 f"Train Accuracy: {train_runner.avg_accuracy: 0.4f}",
             ]
@@ -66,4 +63,4 @@ def main(cfg: MNISTConfig) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    CLI(main)
