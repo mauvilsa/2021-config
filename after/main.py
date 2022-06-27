@@ -63,4 +63,4 @@ def main(
 
 
 if __name__ == "__main__":
-    CLI(main)
+    CLI(main, default_config_files=['defaults.yaml'])
