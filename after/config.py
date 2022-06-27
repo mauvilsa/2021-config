@@ -3,6 +3,11 @@ from dataclasses import dataclass
 
 @dataclass
 class Paths:
+    """
+    Args:
+        log: Tensorboard log directory
+        data: Input data directory
+    """
     log: str
     data: str
 
@@ -20,10 +25,3 @@ class Params:
     epoch_count: int
     lr: float
     batch_size: int
-
-
-@dataclass
-class MNISTConfig:
-    paths: Paths
-    files: Files
-    params: Params
